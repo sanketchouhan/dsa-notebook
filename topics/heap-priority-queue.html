@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heap - Priority Queue - DSA Notebook</title>
+
+    <link rel="stylesheet" href="../stylesheet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
+
+      <header>
+        <h1>Heaps & Priority Queues</h1>
+        <p class="subtitle">
+          Min/Max heap structures, dynamic tracking of extreme elements, and
+          continuous K-way merges.
+        </p>
+      </header>
+
+      <section class="concept-block">
+        <h2>💡 Core Mechanics</h2>
+        <ul>
+          <li>
+            A Heap is a <strong>Complete Binary Tree</strong> mapped internally
+            to a flat array layout to maintain fast cache locality.
+          </li>
+          <li>
+            <strong>Time Complexities:</strong> Accessing the Min/Max element is
+            <code>O(1)</code>. Inserting an element or extracting the root takes
+            <code>O(log N)</code>. Transforming an unsorted array into a heap
+            (Heapify) runs in <code>O(N)</code>.
+          </li>
+          <li>
+            <strong>Visual Cue:</strong> Reach for a Heap whenever a problem
+            asks you to repeatedly track the "top K", "K-th largest/smallest",
+            or continuously fetch the minimum/maximum element from a dynamic
+            stream of incoming data.
+          </li>
+        </ul>
+      </section>
+
+      <h2 class="problem-section-title">📝 Problem Logs</h2>
+      <main>
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              1. Unified Heap Implementation (Min & Max)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Implement a flexible <code>Heap</code> class in JavaScript that
+            supports both <strong>Min-Heap</strong> and
+            <strong>Max-Heap</strong> variants using a constructor flag. The
+            class manages structural invariants dynamically through array index
+            arithmetic.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> Instead of duplicating the
+            entire codebase for Min and Max layouts, wrap the comparison
+            operations in a helper method or check a configuration variable. The
+            underlying swap mechanics, parent/child calculations, and array
+            restructuring remain completely identical.
+          </div>
+
+          <div class="visual-box">
+            <p>// Visual Trace Loop / Whiteboard Diagram</p>
+            <img
+              src="../assets/heaps/heap-unified-trace.png"
+              alt="Min-Heap vs Max-Heap invariant differences comparison"
+              onerror="this.parentElement.style.display = 'none'"
+            />
+          </div>
+
+          <pre><code class="language-javascript">class Heap {
+    constructor(type = 'min') {
+        this.heap = [];
+        this.type = type; // 'min' or 'max'
+    }
+
+    getLeftChildIndex(i) {
+        return 2 * i + 1;
+    }
+
+    getRightChildIndex(i) {
+        return 2 * i + 2;
+    }
+
+    getParentIndex(i) {
+        return Math.floor((i - 1) / 2);
+    }
+
+    // Helper to abstract the comparison logic based on the heap type
+    compare(a, b) {
+        // Min-Heap: parent should be smaller than child
+        // Max-Heap: parent should be larger than child
+        return this.type === 'min' ? a < b : a > b;
+    }
+
+    heapifyUp(idx) {
+        let i = idx;
+
+        while (i > 0) {
+            const parentIdx = this.getParentIndex(i);
+
+            // Compare child with parent based on Min/Max rules
+            if (this.compare(this.heap[i], this.heap[parentIdx])) {
+                [this.heap[i], this.heap[parentIdx]] = 
+                    [this.heap[parentIdx], this.heap[i]];
+                i = parentIdx;
+            } else {
+                break;
+            }
+        }
+    }
+
+    heapifyDown() {
+        let i = 0;
+
+        while (true) {
+            const leftIdx = this.getLeftChildIndex(i);
+            const rightIdx = this.getRightChildIndex(i);
+            let targetIdx = i; // Tracks smallest (MinHeap) or largest (MaxHeap)
+
+            // Check if left child breaks the invariant
+            if (
+                leftIdx < this.heap.length &&
+                this.compare(this.heap[leftIdx], this.heap[targetIdx])
+            ) {
+                targetIdx = leftIdx;
+            }
+
+            // Check if right child breaks the invariant
+            if (
+                rightIdx < this.heap.length &&
+                this.compare(this.heap[rightIdx], this.heap[targetIdx])
+            ) {
+                targetIdx = rightIdx;
+            }
+
+            if (targetIdx !== i) {
+                [this.heap[i], this.heap[targetIdx]] = 
+                    [this.heap[targetIdx], this.heap[i]];
+                i = targetIdx;
+            } else {
+                break;
+            }
+        }
+    }
+
+    insertNode(val) {
+        this.heap.push(val);
+        this.heapifyUp(this.heap.length - 1);
+        return val;
+    }
+
+    extractNode() {
+        if (this.heap.length === 0) return null;
+        if (this.heap.length === 1) return this.heap.pop();
+
+        const rootVal = this.heap[0]; // Extracted minimum or maximum element
+        this.heap[0] = this.heap.pop();
+        this.heapifyDown();
+
+        return rootVal;
+    }
+
+    peek() {
+        return this.heap[0] ?? null;
+    }
+
+    size() {
+        return this.heap.length;
+    }
+}
+
+// ==========================================
+// Usage Reference:
+// const minHeap = new Heap('min');
+// const maxHeap = new Heap('max');
+// ==========================================</code></pre>
+        </article>
+      </main>
+    </div>
+  </body>
+</html>

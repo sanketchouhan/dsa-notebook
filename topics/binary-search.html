@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Binary Search - DSA Notebook</title>
+
+    <link rel="stylesheet" href="../stylesheet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
+
+      <header>
+        <h1>Binary Search</h1>
+        <p class="subtitle">
+          Logarithmic interval split algorithm for searching sorted domains.
+        </p>
+      </header>
+
+      <section class="concept-block">
+        <h2>💡 Core Mechanics</h2>
+        <ul>
+          <li>
+            The input collection <strong>must be sorted</strong> to apply
+            traditional Binary Search.
+          </li>
+          <li>
+            Time Complexity: <strong>O(log N)</strong> because the search space
+            is cut exactly in half each iteration.
+          </li>
+          <li>
+            Space Complexity: <strong>O(1)</strong> when using an iterative
+            array pointer loop.
+          </li>
+        </ul>
+      </section>
+
+      <h2 class="problem-section-title">📝 Problem Logs</h2>
+      <main>
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">704. Binary Search</h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an array of integers <code>nums</code> which is sorted in
+            ascending order, and an integer <code>target</code>, write a
+            function to search <code>target</code> in <code>nums</code>. If
+            <code>target</code> exists, then return its index. Otherwise, return
+            <code>-1</code>.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> Calculate the center index using
+            <code>let mid = left + Math.floor((right - left) / 2)</code> instead
+            of <code>Math.floor((left + right) / 2)</code>. This avoids
+            potential integer overflow vulnerabilities in large datasets across
+            common runtime engines.
+          </div>
+
+          <pre><code class="language-javascript">function search(nums, target) {
+    let left = 0;
+    let right = nums.length - 1;
+
+    while (left <= right) {
+        // Safe middle calculation
+        let mid = left + Math.floor((right - left) / 2);
+
+        if (nums[mid] === target) {
+            return mid;
+        } else if (nums[mid] < target) {
+            left = mid + 1; // Discard left half
+        } else {
+            right = mid - 1; // Discard right half
+        }
+    }
+
+    return -1; // Target not found
+}</code></pre>
+        </article>
+      </main>
+    </div>
+  </body>
+</html>
