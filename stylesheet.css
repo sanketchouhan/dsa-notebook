@@ -250,3 +250,17 @@ pre[class*="language-"] {
   margin: 0 !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
+
+/* ==========================================================================
+   4. RESPONSIVE MOBILE OVERRIDES
+   ========================================================================== */
+@media (max-width: 640px) {
+  body {
+    padding: 1rem 0.5rem; /* Reduce global canvas padding on tiny screens */
+  }
+
+  .problem-card {
+    padding: 1rem 0.5rem; /* Tighten internal card padding from 1.5rem to 1rem */
+    border-radius: 0.5rem; /* Slightly sharpen corners for a cleaner mobile layout */
+  }
+}
