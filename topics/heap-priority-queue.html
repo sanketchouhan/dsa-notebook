@@ -192,6 +192,267 @@
 // const maxHeap = new Heap('max');
 // ==========================================</code></pre>
         </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              2. Kth Largest Element in an Array (LeetCode #215)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Find the <code>k</code>-th largest element in an unsorted array.
+            Note that it is the <code>k</code>-th largest element in the sorted
+            order, not the <code>k</code>-th distinct element.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> To find the **largest**
+            elements, maintain a **Min-Heap** limited to size <code>k</code>. By
+            constantly eviction-filtering the smallest tracked value whenever
+            the heap size grows larger than <code>k</code>, the heap is
+            guaranteed to hold the <code>k</code> absolute largest elements seen
+            so far. The minimum value remaining at the root will be your exact
+            target answer.
+          </div>
+
+          <pre><code class="language-javascript">var findKthLargest = function(nums, k) {
+    // Relying on native LeetCode MinPriorityQueue collection wrapper
+    const pq = new MinPriorityQueue();
+
+    for (const num of nums) {
+        pq.enqueue(num);
+        
+        // If heap size passes K, kick out the absolute smallest element.
+        // This ensures the smallest numbers are purged, leaving the top K largest.
+        if (pq.size() > k) {
+            pq.dequeue();
+        }
+    }
+
+    // The root of our Min-Heap is now the smallest of the K largest elements
+    return pq.front().element;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              3. Kth Largest Element in a Stream (LeetCode #703)
+            </h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            Design a class to find the <code>k</code>-th largest element in a
+            stream of numbers. The class should process initial numbers and
+            efficiently handle new numbers added dynamically over time, always
+            returning the current <code>k</code>-th largest element.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> A data stream means numbers
+            arrive indefinitely, making sorting techniques completely unusable.
+            By maintaining a persistent instance-level
+            <strong>Min-Heap</strong> restricted to size <code>k</code>, the
+            initialization runs in $O(N \log K)$ time, and each subsequent data
+            insertion drops to a blazing-fast **$O(\log K)$ operational speed**.
+          </div>
+
+          <pre><code class="language-javascript">/**
+ * @param {number} k
+ * @param {number[]} nums
+ */
+var KthLargest = function(k, nums) {
+    this.pq = new MinPriorityQueue();
+    this.k = k;
+
+    // Stream incoming array data points through our internal pipeline
+    for (const num of nums) {
+        this.add(num);
+    }
+};
+
+/** * @param {number} val
+ * @return {number}
+ */
+KthLargest.prototype.add = function(val) {
+    this.pq.enqueue(val);
+    
+    // Evict the lowest value to keep only the top K largest values in memory
+    if (this.pq.size() > this.k) {
+        this.pq.dequeue();
+    }
+
+    // Return the root of the Min-Heap (the small boundary of our top-K shelf)
+    return this.pq.front().element;
+};
+
+/**
+ * Usage Reference:
+ * const kthLargest = new KthLargest(3, [4, 5, 8, 2]);
+ * kthLargest.add(3);   // returns 4
+ * kthLargest.add(5);   // returns 5
+ */</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">4. Last Stone Weight (LeetCode #1046)</h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            You are given an array of integers <code>stones</code> where
+            <code>stones[i]</code> is the weight of the <code>i</code>-th stone.
+            We smash the two heaviest stones together. If they are of equal
+            weight, both are destroyed. If not, a new stone with a weight equal
+            to the difference is smashed back into the collection. Repeat until
+            at most one stone remains.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> This is a dynamic simulation
+            problem where the collection structure updates after every step.
+            Since you constantly need to pull the
+            <strong>two largest weights</strong>, use a
+            <strong>Max-Heap</strong>. Extracting the top two elements takes
+            $O(\log N)$ time, and smashing them back takes $O(\log N)$ time,
+            keeping the overall simulation loop highly optimized at $O(N \log
+            N)$ total speed.
+          </div>
+
+          <pre><code class="language-javascript">var lastStoneWeight = function(stones) {
+    // Relying on native LeetCode MaxPriorityQueue collection wrapper
+    const pq = new MaxPriorityQueue();
+
+    for (const stone of stones) {
+        pq.enqueue(stone);
+    }
+
+    // Smash stones together until 0 or 1 stone remains
+    while (pq.size() > 1) {
+        // MaxPriorityQueue returns nodes with .element and .priority properties
+        const stoneOne = pq.dequeue().element;
+        const stoneTwo = pq.dequeue().element;
+        const absDiff = Math.abs(stoneOne - stoneTwo);
+
+        // If stones aren't equal, a smaller fragment remains; add it back to the heap
+        if (absDiff !== 0) {
+            pq.enqueue(absDiff);
+        }
+    }
+
+    // If a final stone remains, return its raw weight value, otherwise return 0
+    return pq.size() ? pq.front().element : 0;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              5. Top K Frequent Elements (LeetCode #347)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an integer array <code>nums</code> and an integer
+            <code>k</code>, return the <code>k</code> most frequent elements.
+            You may return the answer in any order.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> This problem blends two core
+            patterns. First, scan the array into a <strong>Hash Map</strong> to
+            compute element frequencies in $O(N)$ time. Next, stream those hash
+            map frequencies through a <strong>Min-Heap</strong> capped at size
+            <code>k</code>. By configuring the priority queue to compare values
+            based on their frequency property (<code>x => x.freq</code>), the
+            heap automatically filters out the least frequent keys, preserving
+            only the <code>k</code> most frequent elements at optimal
+            efficiency.
+          </div>
+
+          <pre><code class="language-javascript">var topKFrequent = function(nums, k) {
+    const map = {};
+    
+    // Step 1: Count element frequencies using a hash map
+    for (const num of nums) {
+        map[num] = (map[num] || 0) + 1;
+    }
+
+    // Step 2: Use LeetCode's Priority Queue, passing a callback to prioritize by frequency count
+    const pq = new MinPriorityQueue({ priority: x => x.freq });
+    
+    for (const key in map) {
+        pq.enqueue({ value: key, freq: map[key] });
+        
+        // If the heap grows larger than K, pop the element with the absolute lowest frequency
+        if (pq.size() > k) {
+            pq.dequeue();
+        }
+    }
+
+    // Step 3: Extract leftover node elements, conversion to native Numbers is mandatory
+    return pq.toArray().map(v => Number(v.element.value));
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              6. Kth Smallest Element in a Sorted Matrix (LeetCode #378)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an <code>n x n</code> matrix where each of the rows and
+            columns is sorted in ascending order, return the <code>k</code>-th
+            smallest element in the matrix. Note that it is the
+            <code>k</code>-th smallest element in the sorted order, not the
+            <code>k</code>-th distinct element.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> Instead of flattening the matrix
+            ($O(N^2)$) or running a full sorting pass, treat this as a
+            <strong>K-Way Merge</strong>. Since every row is already sorted, the
+            absolute smallest element must reside in the very first column.
+            Initialize a <strong>Min-Heap</strong> with the first element of
+            every row. Pop the minimum element exactly <code>k - 1</code> times.
+            Each time you pop an element, insert its immediate right neighbor
+            from the same row into the heap. The <code>k</code>-th pop
+            guarantees your target value at an optimized speed of $O(K \log N)$.
+          </div>
+
+          <pre><code class="language-javascript">var kthSmallest = function(matrix, k) {
+    const n = matrix.length;
+    // Configure LeetCode priority queue constructor using object priorities
+    const heap = new MinPriorityQueue({ priority: x => x.val });
+    
+    // Step 1: Initialize heap with the start boundaries of all rows
+    for (let i = 0; i < n; i++) {
+        heap.enqueue({ val: matrix[i][0], row: i, col: 0 });
+    }
+
+    // Step 2: Pop the minimum root element K-1 times
+    for (let count = 0; count < k - 1; count++) {
+        // Extract matrix location tracking markers from internal heap node payload
+        const { val, row, col } = heap.dequeue().element;
+        
+        // If an element exists to the right of the popped item, insert it
+        if (col + 1 < n) {
+            heap.enqueue({ val: matrix[row][col + 1], row, col: col + 1 });
+        }
+    }
+
+    // Step 3: The root of the Min-Heap is now precisely the K-th smallest value
+    return heap.front().element.val;
+};</code></pre>
+        </article>
       </main>
     </div>
   </body>
