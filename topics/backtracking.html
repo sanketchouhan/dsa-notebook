@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backtracking - DSA Notebook</title>
+
+    <link rel="stylesheet" href="../stylesheet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
+      <header>
+        <h1>Backtracking</h1>
+        <p class="subtitle">
+          An algorithmic technique for finding all (or some) solutions by
+          exploring a tree of choices and discarding invalid paths.
+        </p>
+      </header>
+
+      <section class="concept-block">
+        <h2>💡 The Backtracking Mental Model</h2>
+        <ul>
+          <li>
+            <strong>State Space Tree:</strong> Think of the problem as a tree
+            where every node represents a partial solution state, and every
+            branch represents a decision choice.
+          </li>
+          <li>
+            <strong>The Core Template:</strong> Every problem follows a strict
+            3-step loop structure: <em>Choose</em> an option,
+            <em>Explore</em> recursively down that path, and
+            <em>Unchoose</em> (undo) that option to reset the state for the next
+            branch.
+          </li>
+          <li>
+            <strong>Pruning:</strong> If a partial path violates problem
+            constraints, abandon it immediately (return early). This prevents
+            traversing entire dead-end subtrees.
+          </li>
+        </ul>
+      </section>
+
+      <h2 class="problem-section-title">📝 Implementation Logs</h2>
+      <main>
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              1. Subsets - Iterative Choice Pattern (LeetCode #78)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            An alternative implementation of the Power Set problem. Instead of
+            using a binary inclusion/exclusion decision tree, this approach
+            utilizes a loop to dynamically branch out for every remaining
+            available choice in the array.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> In this style of backtracking,
+            <strong>every state visited is a valid subset</strong>, so we push a
+            snapshot to our results immediately upon entering the function. The
+            <code>for</code> loop acts as a breadth-explorer that picks an
+            element, recursively drills down to find all subsets containing that
+            element, and then pops it to slide over to the next choice.
+          </div>
+
+          <pre><code class="language-javascript">var subsets = function(nums) {
+    const res = [];
+
+    const backtrack = (start, subset) => {
+        // Every single step down the decision path is a valid combination state
+        res.push([...subset]);
+
+        // Iterate through all remaining available candidate choices
+        for (let i = start; i < nums.length; i++) {
+            subset.push(nums[i]);      // Choose: Take the current element
+            
+            backtrack(i + 1, subset);  // Explore: Move pointer forward to avoid reuse
+            
+            subset.pop();              // Unchoose: Clean up state for the next loop iteration
+        }
+    };
+
+    backtrack(0, []);
+    return res;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">2. Combinations (LeetCode #77)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given two integers <code>n</code> and <code>k</code>, return all
+            possible combinations of <code>k</code> numbers chosen from the
+            range <code>[1, n]</code>. You may return the answer in any order.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> This is a direct extension of
+            the loop-based <code>Subsets</code> pattern, but with a structural
+            twist: our base case acts as a size gate. Instead of collecting
+            every partial state, we only take a snapshot when the
+            <code>path.length === k</code>. Furthermore, we can prune branches
+            early if the remaining available numbers in the loop aren't enough
+            to fill the path up to size <code>k</code>.
+          </div>
+
+          <pre><code class="language-javascript">var combine = function(n, k) {
+    const result = [];
+
+    const backtrack = (path, start) => {
+        // Base Case: If the path reaches our exact constraint size k, log it and return
+        if (path.length === k) {
+            result.push([...path]);
+            return;
+        }
+
+        // Standard Backtracking Loop: Explore numbers from 'start' to 'n'
+        for (let i = start; i <= n; i++) {
+            path.push(i);          // Choose: Add candidate number
+
+            backtrack(path, i + 1); // Explore: Advance start index to avoid duplicates
+
+            path.pop();           // Unchoose: Remove number and backtrack
+        }
+    };
+
+    backtrack([], 1); // Initialization starting with an empty path and index 1
+    return result;
+};</code></pre>
+        </article>
+      </main>
+    </div>
+  </body>
+</html>
