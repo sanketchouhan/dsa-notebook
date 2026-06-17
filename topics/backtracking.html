@@ -143,6 +143,171 @@
     return result;
 };</code></pre>
         </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">3. Permutations (LeetCode #46)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an array <code>nums</code> of distinct integers, return all
+            the possible permutations. You can return the answer in any order.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> Unlike <code>Subsets</code> or
+            <code>Combinations</code> where elements are picked sequentially
+            from a moving <code>start</code> index to avoid duplicates,
+            <strong>Permutations care about element order</strong>. This means
+            every recursive path must scan the entire array from
+            <code>i = 0</code> to evaluate all possible rearrangements. To
+            prevent using the same array element multiple times down a single
+            linear path branch, check if the value is already present using
+            <code>path.includes(nums[i])</code> before processing the choice.
+          </div>
+
+          <pre><code class="language-javascript">var permute = function(nums) {
+    const result = [];
+
+    const backtrack = (path) => {
+        // Base Case: If our path contains all numbers, a full arrangement configuration is complete
+        if (path.length === nums.length) {
+            result.push([...path]);
+            return;
+        }
+        
+        // Loop always begins at 0 because order variations matter (e.g., [1, 2] vs [2, 1])
+        for (let i = 0; i < nums.length; i++) {
+            // Constraint check: Skip element if it's already active in our local branch track
+            if (!path.includes(nums[i])) {
+                path.push(nums[i]);     // Choose: Place current number down
+                
+                backtrack(path);        // Explore: Recurse with loop resetting back to index 0
+                
+                path.pop();             // Unchoose: Extract element and backtrack
+            }
+        }
+    };
+
+    backtrack([]);
+    return result;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              4. Subsets II - Handling Duplicates (LeetCode #90)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an integer array <code>nums</code> that may contain
+            duplicates, return all possible subsets (the power set). The
+            solution set must not contain duplicate subsets. Return the solution
+            in any order.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> When an array contains duplicate
+            items, branching without a rule generates twin execution sub-trees.
+            To elegantly bypass duplicate combinations without using slow
+            hashing structures, <strong>sort the input array first</strong>.
+            Once sorted, matching elements sit side-by-side. Inside your
+            exploration loop, apply the skip rule:
+            <code
+              >if (i &gt; start &amp;&amp; nums[i] === nums[i - 1])
+              continue;</code
+            >. This permits an identical value to be used down a deeper vertical
+            path branch, but completely halts processing the exact same number
+            horizontally across the same loop level!
+          </div>
+
+          <pre><code class="language-javascript">var subsetsWithDup = function (nums) {
+    const result = [];
+
+    // CRITICAL: Sort the array first to bring duplicate elements side-by-side
+    nums.sort((a, b) => a - b);
+
+    const backtrack = (path, start) => {
+        // Collect every unique combination state generated along the path
+        result.push([...path]);
+
+        for (let i = start; i < nums.length; i++) {
+            // Prune duplicate paths: Skip the element if it matches the previous item, 
+            // BUT only if it's NOT the first choice in the current loop frame (i > start)
+            if (i > start && nums[i - 1] === nums[i]) {
+                continue;
+            }
+
+            path.push(nums[i]);      // Choose
+            backtrack(path, i + 1);  // Explore
+            path.pop();              // Unchoose
+        }
+    };
+
+    backtrack([], 0);
+    return result;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">5. Combination Sum (LeetCode #39)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an array of <strong>distinct</strong> integers
+            <code>candidates</code> and a target integer <code>target</code>,
+            return a list of all unique combinations of
+            <code>candidates</code> where the chosen numbers sum to
+            <code>target</code>. You may return the combinations in any order.
+            The same number may be chosen from <code>candidates</code> an
+            <strong>unlimited number of times</strong>.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> To allow the same number to be
+            reused infinitely down a single decision path,
+            <strong>do not advance your pointer to <code>i + 1</code></strong>
+            when recursing. Instead, pass the current loop index
+            <code>i</code> down to the next frame. To optimize constraint
+            checking, pass a tracking <code>sum</code> variable that subtracts
+            the chosen value at each step (Top-Down Deduction). If the sum drops
+            below zero (<code>sum &lt; 0</code>), prune the entire sub-tree
+            immediately.
+          </div>
+
+          <pre><code class="language-javascript">var combinationSum = function (candidates, target) {
+    const result = [];
+
+    const backtrack = (path, start, remainingSum) => {
+        // Base Case / Pruning: Sub-tree exceeds target bound
+        if (remainingSum < 0) return;
+
+        // Base Case: Target perfectly matched
+        if (remainingSum === 0) {
+            result.push([...path]);
+            return;
+        }
+
+        for (let i = start; i < candidates.length; i++) {
+            path.push(candidates[i]); // Choose
+            
+            // Explore: Pass 'i' instead of 'i + 1' to allow element reuse
+            backtrack(path, i, remainingSum - candidates[i]); 
+            
+            path.pop(); // Unchoose
+        }
+    };
+    
+    backtrack([], 0, target);
+    return result;
+};</code></pre>
+        </article>
       </main>
     </div>
   </body>
