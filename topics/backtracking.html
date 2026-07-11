@@ -308,6 +308,485 @@
     return result;
 };</code></pre>
         </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              6. Combination Sum II - Unique Combinations (LeetCode #40)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given a collection of candidate numbers <code>candidates</code> and
+            a target number <code>target</code>, find all unique combinations in
+            <code>candidates</code> where the candidate numbers sum to
+            <code>target</code>. Each number in <code>candidates</code> may only
+            be used <strong>once</strong> in the combination. Note: The solution
+            set must not contain duplicate combinations.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> This problem merges two distinct
+            blueprints: the element deduction constraints from
+            <code>Combination Sum I</code> and the horizontal duplicate pruning
+            from <code>Subsets II</code>. First, **sort the candidates** to
+            group duplicates. Inside the loop, block twin branches at the same
+            recursion depth using
+            <code
+              >if (i &gt; start &amp;&amp; candidates[i] === candidates[i - 1])
+              continue;</code
+            >. To ensure an element is only used once per path, advance the
+            pointer to <code>i + 1</code> during exploration.
+          </div>
+
+          <pre><code class="language-javascript">var combinationSum2 = function (candidates, target) {
+    const result = [];
+    
+    // Sort array first to position duplicates adjacently for easy pruning
+    candidates.sort((a, b) => a - b);
+
+    const backtrack = (path, start, remainingSum) => {
+        // Base Case / Pruning: Exceeded target bound
+        if (remainingSum < 0) return;
+        
+        // Base Case: Target perfectly matched
+        if (remainingSum === 0) {
+            result.push([...path]);
+            return;
+        }
+
+        for (let i = start; i < candidates.length; i++) {
+            // Horizontal duplicate pruning: Skip the same element value across the same loop frame
+            if (i > start && candidates[i - 1] === candidates[i]) {
+                continue;
+            }
+
+            path.push(candidates[i]); // Choose
+            
+            // Explore: Pass 'i + 1' to ensure each array index is only used once
+            backtrack(path, i + 1, remainingSum - candidates[i]);
+            
+            path.pop(); // Unchoose
+        }
+    }
+    
+    backtrack([], 0, target);
+    return result;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              7. Combination Sum III (LeetCode #216)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Find all possible combinations of <code>k</code> numbers that add up
+            to a number <code>n</code>, given that only numbers from
+            <code>1</code> to <code>9</code> can be used, and each combination
+            should be a unique set of numbers.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> This variation introduces a
+            dual-constraint gate. Instead of iterating through an input array,
+            the search space is static and fixed: numbers <code>1</code> through
+            <code>9</code>. The base case fires exactly when
+            <code>path.length === k</code>, and we only capture the path
+            snapshot if our top-down deduction matches target perfectly (<code
+              >remainingSum === 0</code
+            >).
+          </div>
+
+          <pre><code class="language-javascript">var combinationSum3 = function (k, n) {
+const result = [];
+
+const backtrack = (remainingSum, path, start) => {
+  // Base Case Constraint 1: Path has reached the required size k
+  if (path.length === k) {
+      // Base Case Constraint 2: Target sum is perfectly met
+      if (remainingSum === 0) {
+          result.push([...path]);
+      }
+      return; // Terminate branch exploration regardless of sum status
+  }
+  
+  // Loop is hard-bounded between 'start' and 9 based on problem constraints
+  for (let i = start; i <= 9; i++) {
+      path.push(i); // Choose
+      
+      // Explore: Advance to 'i + 1' to guarantee unique number selections
+      backtrack(remainingSum - i, path, i + 1); 
+      
+      path.pop(); // Unchoose
+  }
+}
+
+backtrack(n, [], 1);
+return result;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              8. Letter Combinations of a Phone Number (LeetCode #17)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given a string containing digits from <code>2-9</code> inclusive,
+            return all possible letter combinations that the number could
+            represent. Return the answer in any order. A mapping of digits to
+            letters (just like on the telephone buttons) is provided below.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> Instead of looping through the
+            same array over and over, the loop choices at each level are
+            **dynamically determined by the current digit**. The recursion depth
+            is tracked by an <code>index</code> pointer moving through the
+            <code>digits</code> string. At each frame, we look up the
+            corresponding character string from our telephone map (e.g.,
+            <code>2 -> "abc"</code>) and loop through *only* those specific
+            characters.
+          </div>
+
+          <div class="visual-box">
+            <p>
+              // Visual Phone Keypad Tree Branching Structure / Mapping State
+              Space Tree
+            </p>
+            <img
+              src="../assets/backtracking/letter-combinations-trace.png"
+              alt="Letter combinations backtracking state tree mapping digit buttons to character branches"
+              onerror="this.parentElement.style.display = 'none'"
+            />
+          </div>
+
+          <pre><code class="language-javascript">var letterCombinations = function (digits) {
+// Edge Case: Return empty array immediately if input is empty
+if (!digits.length) return [];
+
+// Map configuration mimicking physical phone keypad interfaces
+const letters = {
+  2: "abc",
+  3: "def",
+  4: "ghi",
+  5: "jkl",
+  6: "mno",
+  7: "pqrs",
+  8: "tuv",
+  9: "wxyz"
+};
+
+const result = [];
+
+const backtrack = (path, index) => {
+  // Base Case: If pointer equals input length, path string is complete
+  if (index === digits.length) {
+      result.push(path.join(""));
+      return;
+  }
+
+  // Dynamically fetch character choices matching the current active digit
+  const choices = letters[digits[index]];
+
+  // Loop bounds are isolated strictly to the matched digit letters length
+  for (let i = 0; i < choices.length; i++) {
+      path.push(choices[i]);     // Choose
+      
+      backtrack(path, index + 1); // Explore: Advance index to load next digit mapping
+      
+      path.pop();                 // Unchoose
+  }
+};
+
+backtrack([], 0);
+return result;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              9. Permutations II - Unique Permutations (LeetCode #47)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given a collection of numbers, <code>nums</code>, that might contain
+            duplicates, return all possible unique permutations in any order.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment:</strong> Permutations require tracking
+            order variations, which means we must scan all available candidates
+            at each frame rather than using a forward-moving index pointer. To
+            prevent duplicate configurations when the input array contains
+            repeating elements, <strong>sort the numbers first</strong>. Then,
+            dynamically pass a sliced, shrinking array of remaining
+            <code>choices</code> to the next recursive frame. Within the step
+            loop, skip identical adjacent candidate elements using
+            <code
+              >if (i &gt; 0 &amp;&amp; choices[i] === choices[i - 1])
+              continue;</code
+            >
+            to shut down duplicate horizontal search branches entirely.
+          </div>
+
+          <pre><code class="language-javascript">var permuteUnique = function (nums) {
+    const result = [];
+    
+    // Sort array first to position duplicates adjacently for easy pruning
+    nums.sort((a, b) => a - b);
+
+    const backtrack = (path, choices) => {
+        // Base Case: If the path matches the length of the input, the full permutation is captured
+        if (path.length === nums.length) {
+            result.push([...path]);
+            return;
+        }
+
+        // Iterate strictly over the remaining available options passed to this frame
+        for (let i = 0; i < choices.length; i++) {
+            // Horizontal duplicate pruning: Skip identical adjacent choice numbers on the same level
+            if (i > 0 && choices[i] === choices[i - 1]) {
+                continue;
+            }
+
+            path.push(choices[i]); // Choose
+            
+            // Explore: Slice out the selected element to forward a shrinking window of valid remaining choices
+            backtrack(path, [...choices.slice(0, i), ...choices.slice(i + 1)]);
+            
+            path.pop(); // Unchoose
+        }
+    }
+
+    backtrack([], nums); // Initial kickoff with full array loaded as choice targets
+    return result;
+};</code></pre>
+          <br />
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Used Array vs. Slicing Optimization):</strong
+            ><br />
+            Slicing the <code>choices</code> array on each recursive frame
+            forces $O(N)$ array buffer creation per level. To optimize this to a
+            constant <strong>$O(N)$ global auxiliary space</strong>, replace
+            slicing with a single **<code>used</code> boolean array** to track
+            elements in-place by flipping flags (<code>true</code> on choose,
+            <code>false</code> on unchoose). <br /><br />
+            When skipping duplicates with this array, the condition
+            <code
+              >if (i &gt; 0 &amp;&amp; nums[i] === nums[i - 1] &amp;&amp;
+              !used[i - 1]) continue;</code
+            >
+            isolates and prunes redundant
+            <strong>horizontal sibling branches</strong>. If
+            <code>used[i - 1]</code> is <code>true</code>, the duplicate is
+            active in a deeper <em>vertical</em> path (valid sequence like
+            <code>[1, 1, 2]</code>). If <code>used[i - 1]</code> is
+            <code>false</code>, that duplicate has already been fully explored
+            and popped out at the current level, meaning processing it again
+            would launch an identical, redundant search tree.
+          </div>
+
+          <pre><code class="language-javascript">var permuteUnique = function (nums) {
+    const result = [];
+    const used = new Array(nums.length).fill(false);
+    
+    // Sort array first to position duplicates adjacently for easy pruning
+    nums.sort((a, b) => a - b);
+
+    const backtrack = (path) => {
+        // Base Case: Path length matches input size
+        if (path.length === nums.length) {
+            result.push([...path]);
+            return;
+        }
+
+        // Always scan the entire array from index 0 for permutation positioning
+        for (let i = 0; i < nums.length; i++) {
+            // Constraint Check 1: Skip if the element is active in the current vertical branch
+            if (used[i]) continue;
+
+            // Constraint Check 2: Prune redundant horizontal sibling branches
+            if (i > 0 && nums[i] === nums[i - 1] && !used[i - 1]) {
+                continue;
+            }
+
+            // Choose: Flag element as active and push to path
+            used[i] = true;
+            path.push(nums[i]);
+
+            // Explore down the branch
+            backtrack(path);
+
+            // Unchoose: Extract element and lower the usage flag for the next loop sibling
+            path.pop();
+            used[i] = false;
+        }
+    };
+
+    backtrack([]);
+    return result;
+};</code></pre>
+        </article>
+
+        <article class="problem-card">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              10. Palindrome Partitioning (LeetCode #131)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given a string <code>s</code>, partition <code>s</code> such that
+            every substring of the partition is a <strong>palindrome</strong>.
+            Return all possible palindrome partitioning of <code>s</code>.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (String Partitioning Pattern):</strong
+            ><br />
+            Instead of choosing index items, this pattern slices dynamic
+            substring prefixes. The loop index <code>i</code> dictates the
+            length of our current candidate slice (<code>0</code> to
+            <code>i</code>). If the substring is not a palindrome, we prune the
+            branch immediately. If it is valid, we pass the leftover remainder
+            string down to the next frame. The base case hits successfully when
+            the <code>remainingString</code> is fully consumed and empty.
+          </div>
+
+          <div class="visual-box">
+            <p>
+              // Visual String Partitioning State Tree / Substring Palindrome
+              Validation Diagram
+            </p>
+            <img
+              src="../assets/backtracking/palindrome-partitioning-trace.png"
+              alt="Backtracking state space tree for palindrome partitioning splitting string prefixes with dynamic remainder strings"
+              onerror="this.parentElement.style.display = 'none'"
+            />
+          </div>
+
+          <pre><code class="language-javascript">var partition = function (s) {
+    const result = [];
+
+    const backtrack = (path, remainingString) => {
+        // Base Case: If no characters remain, a complete valid partition configuration is achieved
+        if (!remainingString.length) {
+            result.push([...path]);
+            return;
+        }
+
+        // Loop represents the length of the substring slice we are carving out
+        for (let i = 1; i <= remainingString.length; i++) {
+            const choice = remainingString.substring(0, i);
+
+            // Prune branch: Skip if the current structural slice is not a palindrome
+            if (!isPalindrome(choice)) {
+                continue;
+            }
+
+            path.push(choice); // Choose
+            
+            // Explore: Pass the trimmed remainder string down to the next frame
+            backtrack(path, remainingString.substring(i));
+            
+            path.pop(); // Unchoose
+        }
+    }
+
+    backtrack([], s);
+    return result;
+};
+
+// Two-pointer linear verification subroutine
+const isPalindrome = (s) => {
+    let start = 0;
+    let end = s.length - 1;
+
+    while (start < end) {
+        if (s[start] !== s[end]) {
+            return false;
+        }
+        start++;
+        end--;
+    }
+    return true;
+};</code></pre>
+          <br />
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Index Pointers Optimization):</strong
+            ><br />
+            Passing string slices like
+            <code>remainingString.substring()</code> down recursive frames
+            forces $O(N)$ memory allocations at every branch level. We can
+            optimize this to <strong>$O(1)$ string copy overhead</strong> by
+            operating exclusively on a single immutable reference of string
+            <code>s</code> combined with an execution pointer
+            <code>start</code>. The exploration loop boundary runs from
+            <code>i = start</code> to <code>s.length</code>, passing
+            <code>i + 1</code> down to the next frame as the subsequent
+            structural boundary. This shifts our validation phase to a simple
+            zero-allocation index-based window lookup.
+          </div>
+
+          <pre><code class="language-javascript">var partition = function (s) {
+    const result = [];
+    const path = [];
+
+    const backtrack = (start) => {
+        // Base Case: If the start pointer reaches the end of the string, the entire text has been cleanly partitioned
+        if (start === s.length) {
+            result.push([...path]);
+            return;
+        }
+
+        // 'i' marks the ending boundary of our targeted substring choice window
+        for (let i = start; i < s.length; i++) {
+            // Validate the index window bounds directly on the global string
+            if (!isPalindrome(s, start, i)) {
+                continue;
+            }
+
+            // Choose: Carve the confirmed substring slice out to log in the current branch path
+            path.push(s.substring(start, i + 1));
+            
+            // Explore: Shift the next start frame pointer immediately past our current end boundary marker
+            backtrack(i + 1);
+            
+            // Unchoose: Extract the slice to clear out the state for the next horizontal sibling index check
+            path.pop();
+        }
+    };
+
+    backtrack(0);
+    return result;
+};
+
+// In-place pointer validation checker running at absolute O(1) auxiliary memory allocations
+const isPalindrome = (str, left, right) => {
+    while (left < right) {
+        if (str[left] !== str[right]) {
+            return false;
+        }
+        left++;
+        right--;
+    }
+    return true;
+};</code></pre>
+        </article>
       </main>
     </div>
   </body>
