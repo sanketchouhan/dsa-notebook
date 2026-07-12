@@ -113,7 +113,59 @@ h1 {
 }
 
 /* ==========================================================================
-   3. TOPIC NOTE PAGES STYLES (html/binary-search.html, etc.)
+   3. DASHBOARD QUESTIONS INDEX STYLES
+   ========================================================================== */
+.questions-section {
+  margin-top: 2.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.questions-intro {
+  margin-bottom: 1.5rem;
+}
+
+.questions-intro h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.35rem;
+  color: var(--accent);
+}
+
+.questions-intro p {
+  color: var(--text-muted);
+}
+
+.questions-group {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.questions-group h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.questions-list {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.questions-list a {
+  color: #e2e8f0;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.questions-list a:hover {
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   4. TOPIC NOTE PAGES STYLES (html/binary-search.html, etc.)
    ========================================================================== */
 .back-link {
   display: inline-block;
@@ -252,7 +304,7 @@ pre[class*="language-"] {
 }
 
 /* ==========================================================================
-   4. RESPONSIVE MOBILE OVERRIDES
+   5. RESPONSIVE MOBILE OVERRIDES
    ========================================================================== */
 @media (max-width: 640px) {
   body {
