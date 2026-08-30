@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arrays - DSA Notebook</title>
+
+    <link rel="stylesheet" href="../stylesheet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
+
+      <header>
+        <h1>Arrays</h1>
+        <p class="subtitle">
+          Patterns and techniques for working with arrays: two-pointers, sliding
+          windows, in-place transforms, and index mapping tricks.
+        </p>
+      </header>
+
+      <section class="concept-block">
+        <h2>💡 The Arrays Mental Model</h2>
+        <ul>
+          <li>
+            <strong>Two-Pointers:</strong> Use slow/fast or left/right pointers
+            to collapse duplicates, partition arrays, or find pairs in linear
+            time.
+          </li>
+          <li>
+            <strong>Sliding Window:</strong> Maintain a variable-sized window
+            over the array for subarray sums, maxima, and minimal-length
+            problems.
+          </li>
+          <li>
+            <strong>In-Place Transforms:</strong> Overwrite existing entries
+            with compacted results to achieve $O(1)$ extra space when allowed.
+          </li>
+          <li>
+            <strong>Index Mapping:</strong> Use index arithmetic and modular
+            mappings for cyclic shifts and bucketed frequency problems.
+          </li>
+        </ul>
+      </section>
+
+      <h2 class="problem-section-title">📝 Implementation Logs</h2>
+
+      <main>
+        <article class="problem-card" id="1">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              1. Remove Duplicates from Sorted Array (LeetCode #26)
+            </h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an integer array <code>nums</code> sorted in non-decreasing
+            order, remove the duplicates <strong>in-place</strong> such that
+            each unique element appears only once. Return the number of unique
+            elements <code>k</code>, with the first <code>k</code> elements of
+            <code>nums</code> holding the final result.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Two-Pointer Slow/Fast Pattern):</strong
+            ><br />
+            Since the array is already sorted, duplicate values are guaranteed
+            to sit next to each other. Use a
+            <strong>slow write pointer</strong> (<code>writeIndex</code>) and a
+            <strong>fast read pointer</strong> (<code>readIndex</code>). The
+            fast pointer scans every number; whenever it encounters a value
+            distinct from its predecessor, overwrite
+            <code>nums[writeIndex]</code> with that unique value and increment
+            the write boundary. This achieves an optimal
+            <strong>$O(N)$ runtime</strong> with
+            <strong>$O(1)$ extra space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var removeDuplicates = function(nums) {
+    if (nums.length === 0) return 0;
+
+    let writeIndex = 1;
+
+    for (let readIndex = 1; readIndex < nums.length; readIndex++) {
+        // Compare with the previously inspected element
+        if (nums[readIndex] !== nums[readIndex - 1]) {
+            nums[writeIndex] = nums[readIndex];
+            writeIndex++;
+        }
+    }
+
+    return writeIndex;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="2">
+          <div class="problem-header">
+            <h3 class="problem-title">2. Remove Element (LeetCode #27)</h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an integer array <code>nums</code> and an integer
+            <code>val</code>, remove all occurrences of <code>val</code> in
+            <code>nums</code> <strong>in-place</strong>. The order of the
+            elements may be changed. Return the number of elements in
+            <code>nums</code> which are not equal to <code>val</code>.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Fast/Slow Filter In-Place):</strong
+            ><br />
+            Use a <strong>read pointer</strong> to scan the array and a
+            <strong>write pointer</strong> to define the boundary of valid
+            elements. As <code>readIndex</code> steps through the array, ignore
+            any element equal to <code>val</code>. Whenever a valid element
+            (<code>!== val</code>) is encountered, copy it to
+            <code>nums[writeIndex]</code> and advance <code>writeIndex</code>.
+            This filters the array in a single pass in
+            <strong>$O(N)$ time</strong> and
+            <strong>$O(1)$ extra space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} nums
+ * @param {number} val
+ * @return {number}
+ */
+var removeElement = function(nums, val) {
+    if (nums.length === 0) return 0;
+    
+    let writeIndex = 0;
+
+    for (let readIndex = 0; readIndex < nums.length; readIndex++) {
+        // Only keep elements that do not match the target value
+        if (nums[readIndex] !== val) {
+            nums[writeIndex] = nums[readIndex];
+            writeIndex++;
+        }
+    }
+
+    return writeIndex;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="3">
+          <div class="problem-header">
+            <h3 class="problem-title">3. Reverse String (LeetCode #344)</h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            Write a function that reverses a string. The input string is given
+            as an array of characters <code>s</code>. You must do this by
+            modifying the input array <strong>in-place</strong> with
+            <code>O(1)</code> extra memory.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Opposite-Direction Two Pointers):</strong
+            ><br />
+            Place one pointer at the start (<code>start = 0</code>) and another
+            at the end (<code>end = s.length - 1</code>). Swap the elements at
+            these pointers, then increment <code>start</code> and decrement
+            <code>end</code> toward each other. The process terminates when the
+            pointers meet in the middle, achieving the reversal in
+            <strong>$O(N)$ time</strong> and strictly
+            <strong>$O(1)$ auxiliary space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {character[]} s
+ * @return {void} Do not return anything, modify s in-place instead.
+ */
+var reverseString = function(s) {
+    let start = 0;
+    let end = s.length - 1;
+
+    // Swap elements from the outside in until pointers meet in the center
+    while (start < end) {
+        const temp = s[start];
+        s[start] = s[end];
+        s[end] = temp;
+
+        start++;
+        end--;
+    }
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="4">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              4. Best Time to Buy and Sell Stock (LeetCode #121)
+            </h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            You are given an array <code>prices</code> where
+            <code>prices[i]</code> is the price of a given stock on the
+            <code>i</code>-th day. You want to maximize your profit by choosing
+            a single day to buy one stock and choosing a different day in the
+            future to sell that stock. Return the maximum profit you can achieve
+            from this transaction. If you cannot achieve any profit, return
+            <code>0</code>.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Reverse Traversal / Running Peak):</strong
+            ><br />
+            Instead of scanning forward and tracking the minimum buy price, you
+            can scan backward from right to left while tracking the **maximum
+            future selling price** (<code>maxPrice</code>). For every day, the
+            best profit you could make selling in the future is
+            <code>maxPrice - prices[currIndex]</code>. This evaluates all
+            optimal sell days in a single linear pass in
+            <strong>$O(N)$ time</strong> and <strong>$O(1)$ space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} prices
+ * @return {number}
+ */
+var maxProfit = function(prices) {
+    let length = prices.length;
+    let maxPrice = prices[length - 1];
+    let maxProfit = 0;
+
+    // Scan backwards from the rightmost element to maintain the running maximum future sell price
+    for (let currIndex = length - 1; currIndex >= 0; currIndex--) {
+        maxProfit = Math.max(maxProfit, maxPrice - prices[currIndex]);
+        maxPrice = Math.max(maxPrice, prices[currIndex]);
+    }
+
+    return maxProfit;
+};</code></pre>
+        </article>
+      </main>
+    </div>
+  </body>
+</html>
