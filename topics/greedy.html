@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Greedy Algorithms - DSA Notebook</title>
+
+    <link rel="stylesheet" href="../stylesheet.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css"
+    />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a href="../index.html" class="back-link">&larr; Back to Dashboard</a>
+
+      <header>
+        <h1>Greedy Algorithms</h1>
+        <p class="subtitle">
+          Local choices that build globally optimal solutions through careful
+          ordering, selection, and proof of correctness.
+        </p>
+      </header>
+
+      <section class="concept-block">
+        <h2>💡 Core Mechanics</h2>
+        <ul>
+          <li>
+            A greedy algorithm makes the best available choice at each step
+            without revisiting earlier decisions.
+          </li>
+          <li>
+            The choice is only reliable when the problem has the
+            <strong>greedy-choice property</strong> and
+            <strong>optimal substructure</strong>.
+          </li>
+          <li>
+            Common signals include interval scheduling, minimum-cost
+            connections, deadlines, and repeatedly choosing the next most
+            valuable or least costly option.
+          </li>
+        </ul>
+      </section>
+
+      <h2 class="problem-section-title">📝 Problem Logs</h2>
+      <main>
+        <article class="problem-card" id="1">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              1. Two City Scheduling (LeetCode #1029)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            A company is planning to interview <code>2n</code> people. Given the
+            array <code>costs</code> where
+            <code>costs[i] = [aCost<sub>i</sub>, bCost<sub>i</sub>]</code>, the
+            cost of flying the <code>i</code>-th person to city
+            <code>a</code> is <code>aCost<sub>i</sub></code
+            >, and the cost of flying the <code>i</code>-th person to city
+            <code>b</code> is <code>bCost<sub>i</sub></code
+            >. Return the minimum cost to fly exactly <code>n</code> people to
+            city <code>a</code> and <code>n</code> people to city
+            <code>b</code>.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Greedy Opportunity Cost / Refund
+              Difference):</strong
+            ><br />
+            The optimal choice isn't just about picking whoever has the cheapest
+            individual ticket to City A or City B; it's about the **relative
+            difference** <code>bCost - aCost</code> (the money saved by choosing
+            City A over City B). Sorting descending by
+            <code>(bCost - aCost)</code> prioritizes sending the people with the
+            highest financial benefit of picking A into the first half (<code
+              >[0, n)</code
+            >). The remaining half automatically goes to City B, achieving an
+            optimal greedy solution in <strong>$O(N \log N)$ time</strong> and
+            <strong>$O(1)$ extra space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[][]} costs
+ * @return {number}
+ */
+var twoCitySchedCost = function (costs) {
+    // Sort descending by savings achieved by choosing City A over City B: (bCost - aCost)
+    costs.sort((candidateA, candidateB) => {
+        const savingsA = candidateA[1] - candidateA[0];
+        const savingsB = candidateB[1] - candidateB[0];
+        return savingsB - savingsA;
+    });
+
+    let totalCost = 0;
+    const peoplePerCity = costs.length / 2;
+
+    // First half goes to City A; second half goes to City B
+    for (let i = 0; i < peoplePerCity; i++) {
+        const cityACost = costs[i][0];
+        const cityBCost = costs[i + peoplePerCity][1];
+
+        totalCost += cityACost + cityBCost;
+    }
+
+    return totalCost;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="2">
+          <div class="problem-header">
+            <h3 class="problem-title">2. Assign Cookies (LeetCode #455)</h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            Assume you are an awesome parent and want to give your children some
+            cookies. But, you should give each child at most one cookie. Each
+            child <code>i</code> has a greed factor <code>g[i]</code>, and each
+            cookie <code>j</code> has a size <code>s[j]</code>. If
+            <code>s[j] &gt;= g[i]</code>, we can assign the cookie
+            <code>j</code> to child <code>i</code>. Maximize the number of
+            content children.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Greedy Two-Pointer Match):</strong><br />
+            Sort both the children by their greed factors and the cookies by
+            their sizes in ascending order. By attempting to satisfy the **least
+            greedy child with the smallest possible cookie** that satisfies
+            them, you preserve larger cookies for children with higher greed
+            factors. Advance the cookie pointer on every step, and advance the
+            child pointer only when a valid assignment is made.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} greedFactors
+ * @param {number[]} cookieSizes
+ * @return {number}
+ */
+var findContentChildren = function(greedFactors, cookieSizes) {
+    // Sort both greed levels and cookie sizes in ascending order
+    greedFactors.sort((a, b) => a - b);
+    cookieSizes.sort((a, b) => a - b);
+
+    let childIndex = 0;
+    let cookieIndex = 0;
+
+    // Greedily match the smallest adequate cookie to the least greedy child
+    while (childIndex < greedFactors.length && cookieIndex < cookieSizes.length) {
+        if (cookieSizes[cookieIndex] >= greedFactors[childIndex]) {
+            childIndex++;
+        }
+        cookieIndex++;
+    }
+
+    return childIndex;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="3">
+          <div class="problem-header">
+            <h3 class="problem-title">3. Lemonade Change (LeetCode #860)</h3>
+            <span class="badge">Easy</span>
+          </div>
+
+          <p class="problem-desc">
+            At a lemonade stand, each lemonade costs <code>$5</code>. Customers
+            queue to buy from you and order one at a time. They can pay with a
+            <code>$5</code>, <code>$10</code>, or <code>$20</code> bill. You
+            must provide the correct change to each customer so that the net
+            transaction is <code>$5</code>. Return <code>true</code> if you can
+            provide every customer with correct change, or
+            <code>false</code> otherwise.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Greedy Denomination Priority):</strong
+            ><br />
+            A <code>$5</code> bill is your most versatile asset because it can
+            give change to both <code>$10</code> and <code>$20</code> bills,
+            whereas a <code>$10</code> bill can only help make change for a
+            <code>$20</code> bill. When handed a <code>$20</code> bill, greedily
+            prioritize giving one <code>$10</code> and one
+            <code>$5</code> rather than three <code>$5</code> bills. Reserving
+            your <code>$5</code> bills keeps future change options as flexible
+            as possible.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} customerBills
+ * @return {boolean}
+ */
+var lemonadeChange = function(customerBills) {
+    let fiveDollarCount = 0;
+    let tenDollarCount = 0;
+
+    for (const bill of customerBills) {
+        if (bill === 5) {
+            fiveDollarCount++;
+        } else if (bill === 10) {
+            if (fiveDollarCount === 0) return false;
+            fiveDollarCount--;
+            tenDollarCount++;
+        } else {
+            // Greedy choice: Prioritize giving one $10 and one $5 to conserve $5 bills
+            if (tenDollarCount > 0 && fiveDollarCount > 0) {
+                tenDollarCount--;
+                fiveDollarCount--;
+            } else if (fiveDollarCount >= 3) {
+                fiveDollarCount -= 3;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return true;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="4">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              4. Best Time to Buy and Sell Stock II (LeetCode #122)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            You are given an integer array <code>prices</code> where
+            <code>prices[i]</code> is the price of a given stock on the
+            <code>i</code>-th day. On each day, you may decide to buy and/or
+            sell the stock. You can only hold at most one share of the stock at
+            any time. However, you can buy it and then immediately sell it on
+            the same day. Find and return the
+            <strong>maximum profit</strong> you can achieve.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Greedy Slope Accumulation):</strong
+            ><br />
+            Because you can execute unlimited consecutive transactions,
+            capturing every single upward price climb (<code
+              >prices[i] &gt; prices[i - 1]</code
+            >) yields the mathematically optimal total profit. A multi-day rise
+            from day $A$ to day $C$ ($C - A$) is identical to summing each daily
+            ascent ($(B - A) + (C - B)$). Greedily capture every positive
+            day-over-day price jump in a single
+            <strong>$O(N)$ pass</strong> with <strong>$O(1)$ space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} stockPrices
+ * @return {number}
+ */
+var maxProfit = function(stockPrices) {
+    let totalProfit = 0;
+
+    // Accumulate every positive upward slope between adjacent days
+    for (let currentDay = 1; currentDay < stockPrices.length; currentDay++) {
+        const previousDayPrice = stockPrices[currentDay - 1];
+        const currentDayPrice = stockPrices[currentDay];
+
+        if (currentDayPrice > previousDayPrice) {
+            totalProfit += currentDayPrice - previousDayPrice;
+        }
+    }
+
+    return totalProfit;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="5">
+          <div class="problem-header">
+            <h3 class="problem-title">5. Insert Interval (LeetCode #57)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            You are given an array of non-overlapping intervals
+            <code>intervals</code> where
+            <code>intervals[i] = [start<sub>i</sub>, end<sub>i</sub>]</code>
+            sorted in ascending order by <code>start<sub>i</sub></code
+            >. You are also given an interval
+            <code>newInterval = [start, end]</code> that represents the start
+            and end of another interval. Insert <code>newInterval</code> into
+            <code>intervals</code> such that <code>intervals</code> is still
+            sorted in ascending order by <code>start<sub>i</sub></code> and does
+            not have any overlapping intervals (merge overlapping intervals if
+            necessary).
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Three-Phase Linear Sweep):</strong><br />
+            Because the list is already sorted, process intervals in three clean
+            phases:
+            <ol>
+              <li>
+                <strong>Before Overlap:</strong> Collect all intervals ending
+                strictly before the incoming interval starts (<code
+                  >intervalEnd &lt; targetStart</code
+                >).
+              </li>
+              <li>
+                <strong>Merge Overlap:</strong> For any interval that starts
+                before or when the incoming interval ends (<code
+                  >intervalStart &lt;= targetEnd</code
+                >), absorb it by expanding bounds:
+                <code>targetStart = min(...)</code> and
+                <code>targetEnd = max(...)</code>.
+              </li>
+              <li>
+                <strong>After Overlap:</strong> Push the merged interval, then
+                append all remaining trailing intervals.
+              </li>
+            </ol>
+            This achieves a clean <strong>$O(N)$ runtime</strong> with
+            <strong>$O(N)$ output space</strong> in a single forward pass
+            without re-sorting.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[][]} intervals
+ * @param {number[]} newInterval
+ * @return {number[][]}
+ */
+var insert = function (intervals, newInterval) {
+    const mergedIntervals = [];
+    let currentIndex = 0;
+    const totalIntervals = intervals.length;
+
+    let [targetStart, targetEnd] = newInterval;
+
+    // Phase 1: Add all intervals that finish strictly before newInterval starts
+    while (currentIndex < totalIntervals && intervals[currentIndex][1] < targetStart) {
+        mergedIntervals.push(intervals[currentIndex]);
+        currentIndex++;
+    }
+
+    // Phase 2: Merge all overlapping intervals into one expanded interval
+    while (currentIndex < totalIntervals && intervals[currentIndex][0] <= targetEnd) {
+        targetStart = Math.min(targetStart, intervals[currentIndex][0]);
+        targetEnd = Math.max(targetEnd, intervals[currentIndex][1]);
+        currentIndex++;
+    }
+    mergedIntervals.push([targetStart, targetEnd]);
+
+    // Phase 3: Add all remaining intervals that start after the merged interval ends
+    while (currentIndex < totalIntervals) {
+        mergedIntervals.push(intervals[currentIndex]);
+        currentIndex++;
+    }
+
+    return mergedIntervals;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="6">
+          <div class="problem-header">
+            <h3 class="problem-title">6. Merge Intervals (LeetCode #56)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an array of <code>intervals</code> where
+            <code>intervals[i] = [start<sub>i</sub>, end<sub>i</sub>]</code>,
+            merge all overlapping intervals, and return an array of the
+            non-overlapping intervals that cover all the intervals in the input.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Sort by Start Time + Greedy
+              Extension):</strong
+            ><br />
+            Sorting intervals by their starting times guarantees that any
+            overlapping intervals will be adjacent. Initialize the output list
+            with the first interval, then compare each subsequent interval's
+            start against the previous merged interval's end (<code
+              >currentStart &lt;= lastMergedInterval[1]</code
+            >). Because starts are sorted, you only ever need to expand the end
+            boundary using
+            <code>Math.max(lastMergedInterval[1], currentEnd)</code>. If they
+            don't overlap, append the current interval as a new anchor point.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[][]} intervals
+ * @return {number[][]}
+ */
+var merge = function (intervals) {
+    if (intervals.length <= 1) return intervals;
+
+    // Sort intervals ascending by start boundary
+    intervals.sort((intervalA, intervalB) => intervalA[0] - intervalB[0]);
+
+    const mergedIntervals = [intervals[0]];
+
+    for (let i = 1; i < intervals.length; i++) {
+        const currentInterval = intervals[i];
+        const lastMergedInterval = mergedIntervals[mergedIntervals.length - 1];
+
+        const [currentStart, currentEnd] = currentInterval;
+
+        // Check for overlap: current interval starts before or when the last merged ends
+        if (currentStart <= lastMergedInterval[1]) {
+            // Expand the end boundary of the last interval
+            lastMergedInterval[1] = Math.max(lastMergedInterval[1], currentEnd);
+        } else {
+            // No overlap: start a new interval track
+            mergedIntervals.push(currentInterval);
+        }
+    }
+
+    return mergedIntervals;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="7">
+          <div class="problem-header">
+            <h3 class="problem-title">7. Partition Labels (LeetCode #763)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            You are given a string <code>s</code>. We want to partition the
+            string into as many parts as possible so that each letter appears in
+            at most one part. Return a list of integers representing the size of
+            these parts.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Greedy Interval Boundary Expansion):</strong
+            ><br />
+            Every character in the current partition dictates a minimum
+            boundary: the partition cannot end before that character's
+            <strong>last occurrence</strong>. First, record the first and last
+            occurrence of each character. Then, scan through the string
+            maintaining a dynamic boundary
+            <code>[partitionStart, partitionEnd]</code>. If the current index
+            moves past <code>partitionEnd</code> (<code
+              >i &gt; partitionEnd</code
+            >), the previous partition is sealed, and a new one starts.
+            Otherwise, continually expand
+            <code>partitionEnd = Math.max(partitionEnd, lastOccurrence)</code>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {string} s
+ * @return {number[]}
+ */
+var partitionLabels = function (s) {
+    const firstSeenIndices = Array(26).fill(-1);
+    const lastSeenIndices = Array(26).fill(-1);
+
+    // Precompute the first and last occurrence index for every lowercase English letter
+    for (let i = 0; i < s.length; i++) {
+        const charCode = s[i].charCodeAt(0) - 97;
+
+        if (firstSeenIndices[charCode] < 0) {
+            firstSeenIndices[charCode] = i;
+        }
+        lastSeenIndices[charCode] = i;
+    }
+
+    const partitionSizes = [];
+    let partitionStart = 0;
+    let partitionEnd = 0;
+
+    for (let currentIndex = 0; currentIndex < s.length; currentIndex++) {
+        // Current index passed the boundary of the previous segment: finalize and reset
+        if (currentIndex > partitionEnd) {
+            partitionSizes.push(partitionEnd - partitionStart + 1);
+            partitionStart = currentIndex;
+            partitionEnd = currentIndex;
+        }
+
+        const charCode = s[currentIndex].charCodeAt(0) - 97;
+
+        partitionStart = Math.min(partitionStart, firstSeenIndices[charCode]);
+        partitionEnd = Math.max(partitionEnd, lastSeenIndices[charCode]);
+    }
+
+    // Flush the final remaining partition
+    if (partitionStart <= partitionEnd) {
+        partitionSizes.push(partitionEnd - partitionStart + 1);
+    }
+
+    return partitionSizes;
+};</code></pre>
+        </article>
+      </main>
+    </div>
+  </body>
+</html>
