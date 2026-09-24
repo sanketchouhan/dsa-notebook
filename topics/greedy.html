@@ -471,7 +471,7 @@ var partitionLabels = function (s) {
 
     // Precompute the first and last occurrence index for every lowercase English letter
     for (let i = 0; i < s.length; i++) {
-        const charCode = s[i].charCodeAt(0) - 97;
+        const charCode = s.charCodeAt(i) - 97;
 
         if (firstSeenIndices[charCode] < 0) {
             firstSeenIndices[charCode] = i;
@@ -491,7 +491,7 @@ var partitionLabels = function (s) {
             partitionEnd = currentIndex;
         }
 
-        const charCode = s[currentIndex].charCodeAt(0) - 97;
+        const charCode = s.charCodeAt(currentIndex) - 97;
 
         partitionStart = Math.min(partitionStart, firstSeenIndices[charCode]);
         partitionEnd = Math.max(partitionEnd, lastSeenIndices[charCode]);
@@ -503,6 +503,143 @@ var partitionLabels = function (s) {
     }
 
     return partitionSizes;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="8">
+          <div class="problem-header">
+            <h3 class="problem-title">
+              8. Non-overlapping Intervals (LeetCode #435)
+            </h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given an array of intervals <code>intervals</code> where
+            <code>intervals[i] = [start<sub>i</sub>, end<sub>i</sub>]</code>,
+            return the minimum number of intervals you need to remove to make
+            the rest of the intervals non-overlapping. Note that intervals which
+            touch at a point (e.g., <code>[1, 2]</code> and <code>[2, 3]</code>)
+            are non-overlapping.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Greedy Earliest End-Time / Interval
+              Scheduling):</strong
+            ><br />
+            Minimizing removals is mathematically equivalent to
+            <strong
+              >maximizing the count of mutually non-overlapping
+              intervals</strong
+            >. To leave as much room as possible for future intervals, sort the
+            intervals in ascending order by their
+            <strong>end boundary</strong> (<code>end<sub>i</sub></code
+            >). Track the end marker of the last retained interval. If the next
+            interval starts before this marker (<code>start &lt; lastEnd</code
+            >), an overlap occurs, so increment the removal count. Otherwise,
+            retain it and update <code>lastEnd = currentEnd</code>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[][]} intervals
+ * @return {number}
+ */
+var eraseOverlapIntervals = function (intervals) {
+    if (intervals.length <= 1) return 0;
+
+    // Greedily sort ascending by end time to finish intervals as early as possible
+    intervals.sort((intervalA, intervalB) => intervalA[1] - intervalB[1]);
+
+    let lastAcceptedEnd = -Infinity;
+    let removalCount = 0;
+
+    for (let i = 0; i < intervals.length; i++) {
+        const [currentStart, currentEnd] = intervals[i];
+
+        // Strict inequality: intervals touching at a boundary point do NOT count as overlap
+        if (currentStart < lastAcceptedEnd) {
+            // Overlap detected: greedily discard the interval that finishes later
+            removalCount++;
+        } else {
+            // No overlap: retain this interval and update the boundary marker
+            lastAcceptedEnd = currentEnd;
+        }
+    }
+
+    return removalCount;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="9">
+          <div class="problem-header">
+            <h3 class="problem-title">9. Task Scheduler (LeetCode #621)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            Given a characters array <code>tasks</code>, representing the tasks
+            a CPU needs to do, where each letter represents a different task.
+            Tasks could be done in any order. Each task is done in one unit of
+            time. For each cycle of CPU, the CPU could complete either one task
+            or just be idle. However, there is a non-negative integer
+            <code>n</code> that represents the cooldown period between two
+            <strong>same tasks</strong> (the same task must be separated by at
+            least <code>n</code> intervals). Return the least number of units of
+            times that the CPU will take to finish all the given tasks.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Greedy Chunk Scheduling / Bottleneck
+              Formula):</strong
+            ><br />
+            The execution time is bottlenecked entirely by the task with the
+            highest frequency (<code>maxFrequency</code>). Arrange the most
+            frequent tasks first to create <code>maxFrequency - 1</code> chunks
+            of length <code>n + 1</code>. The final chunk only contains tasks
+            that tie for the highest frequency (<code>maxFrequencyCount</code>).
+            The baseline formula is
+            <code>(maxFrequency - 1) * (n + 1) + maxFrequencyCount</code>. If
+            there are enough other tasks to fill all idle slots, no idle time is
+            needed, so the total time will simply be <code>tasks.length</code>.
+            Thus, the answer is
+            <code>Math.max(calculatedCycles, tasks.length)</code>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {character[]} tasks
+ * @param {number} n
+ * @return {number}
+ */
+var leastInterval = function(tasks, n) {
+    const taskFrequencies = Array(26).fill(0);
+    let maxFrequency = 0;
+
+    // Count frequency of each task and identify the maximum frequency
+    for (let i = 0; i < tasks.length; i++) {
+        const charCode = tasks[i].charCodeAt(0) - 65;
+        taskFrequencies[charCode] += 1;
+        maxFrequency = Math.max(maxFrequency, taskFrequencies[charCode]);
+    }
+
+    // Count how many tasks share the maximum frequency
+    let maxFrequencyCount = 0;
+    for (let i = 0; i < 26; i++) {
+        if (taskFrequencies[i] === maxFrequency) {
+            maxFrequencyCount++;
+        }
+    }
+
+    // Calculate required cycles based on the bottleneck chunks
+    const chunkCount = maxFrequency - 1;
+    const chunkSize = n + 1;
+    const minimumCycles = (chunkCount * chunkSize) + maxFrequencyCount;
+
+    // If remaining tasks exceed the idle slots created, no idle cycles are needed
+    return Math.max(minimumCycles, tasks.length);
 };</code></pre>
         </article>
       </main>
