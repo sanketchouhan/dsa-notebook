@@ -642,7 +642,320 @@ var leastInterval = function(tasks, n) {
     return Math.max(minimumCycles, tasks.length);
 };</code></pre>
         </article>
+
+        <article class="problem-card" id="10">
+          <div class="problem-header">
+            <h3 class="problem-title">10. Gas Station (LeetCode #134)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            There are <code>n</code> gas stations along a circular route, where
+            the amount of gas at the <code>i</code>-th station is
+            <code>gas[i]</code>. You have a car with an unlimited gas tank and
+            it costs <code>cost[i]</code> of gas to travel from the
+            <code>i</code>-th station to its next <code>(i + 1)</code>-th
+            station. You begin the journey with an empty tank at one of the gas
+            stations. Given two integer arrays <code>gas</code> and
+            <code>cost</code>, return the starting gas station's index if you
+            can travel around the circuit once in the clockwise direction,
+            otherwise return <code>-1</code>. If there exists a solution, it is
+            <strong>guaranteed to be unique</strong>.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Net Gain Invariant & Greedy Reset):</strong
+            ><br />
+            Two mathematical invariants drive this solution:
+            <ol>
+              <li>
+                <strong>Global Feasibility:</strong> If the total gas gained
+                across all stations is greater than or equal to the total cost
+                (<code>totalTank &gt;= 0</code>), a valid circular route is
+                mathematically guaranteed to exist.
+              </li>
+              <li>
+                <strong>Greedy Reset:</strong> If your running tank drops into
+                negative territory while traveling from station $A$ to station
+                $B$ (<code>currentTank &lt; 0</code>), then
+                <em
+                  >no station between $A$ and $B$ can be a valid starting point
+                  either</em
+                >, as they would start with even less accumulated gas. Reset the
+                candidate starting station to <code>i</code> and clear
+                <code>currentTank = 0</code>.
+              </li>
+            </ol>
+            This allows finding the unique starting index in a single pass in
+            <strong>$O(N)$ time</strong> and <strong>$O(1)$ space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} gas
+ * @param {number[]} cost
+ * @return {number}
+ */
+var canCompleteCircuit = function(gas, cost) {
+    let startingStation = 0;
+    let currentTank = 0;
+    let totalTank = 0;
+
+    for (let i = 0; i < gas.length; i++) {
+        // If the tank goes negative, previous candidate start points cannot reach station i
+        if (currentTank < 0) {
+            startingStation = i;
+            currentTank = 0;
+        }
+
+        const netGasGain = gas[i] - cost[i];
+        currentTank += netGasGain;
+        totalTank += netGasGain;
+    }
+
+    // A valid circuit exists if and only if total gas acquired covers total travel cost
+    return totalTank >= 0 ? startingStation : -1;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="11">
+          <div class="problem-header">
+            <h3 class="problem-title">11. Car Pooling (LeetCode #1094)</h3>
+            <span class="badge">Medium</span>
+          </div>
+
+          <p class="problem-desc">
+            There is a car with a capacity of <code>capacity</code> empty seats.
+            The vehicle only drives east (i.e., it cannot turn around and drive
+            west). You are given the integer <code>capacity</code> and an array
+            <code>trips</code> where
+            <code
+              >trips[i] = [numPassengers<sub>i</sub>, from<sub>i</sub>,
+              to<sub>i</sub>]</code
+            >
+            indicates that the <code>i</code>-th trip has
+            <code>numPassengers<sub>i</sub></code> passengers and the locations
+            to pick them up and drop them off are
+            <code>from<sub>i</sub></code> and
+            <code>to<sub>i</sub></code> respectively. The locations are given as
+            the number of kilometers due east from the car's initial starting
+            location. Return <code>true</code> if it is possible to pick up and
+            drop off all passengers for all the given trips, or
+            <code>false</code> otherwise.
+          </p>
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Difference Array / Prefix Sum
+              Timeline):</strong
+            ><br />
+            Instead of updating passenger counts across every kilometer in each
+            trip interval (which would cost $O(\text{trips} \times
+            \text{distance})$), treat the route as a
+            <strong>Difference Array</strong>. At pickup kilometer
+            <code>pickupLocation</code>, add passengers
+            (<code>+numPassengers</code>); at dropoff kilometer
+            <code>dropoffLocation</code>, subtract them
+            (<code>-numPassengers</code>) because passengers disembark
+            <em>before</em> or <em>at</em> that exact marker. A single running
+            prefix sum sweep across the timeline reveals the exact occupancy at
+            every point in $O(N + D)$ time, failing immediately if occupancy
+            ever exceeds capacity.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[][]} trips
+ * @param {number} vehicleCapacity
+ * @return {boolean}
+ */
+var carPooling = function (trips, vehicleCapacity) {
+    // Problem constraint: 0 <= from_i < to_i <= 1000
+    const passengerDeltas = Array(1001).fill(0);
+
+    // Record net passenger change at pickup and dropoff milestones
+    for (let i = 0; i < trips.length; i++) {
+        const [passengerCount, pickupLocation, dropoffLocation] = trips[i];
+
+        passengerDeltas[pickupLocation] += passengerCount;
+        passengerDeltas[dropoffLocation] -= passengerCount;
+    }
+
+    let currentPassengerCount = 0;
+
+    // Sweep linearly across the timeline to compute prefix occupancy
+    for (let kilometer = 0; kilometer <= 1000; kilometer++) {
+        currentPassengerCount += passengerDeltas[kilometer];
+
+        if (currentPassengerCount > vehicleCapacity) {
+            return false;
+        }
+    }
+
+    return true;
+};</code></pre>
+        </article>
+
+        <article class="problem-card" id="12">
+          <div class="problem-header">
+            <h3 class="problem-title">12. Candy (LeetCode #135)</h3>
+            <span class="badge">Hard</span>
+          </div>
+
+          <p class="problem-desc">
+            There are <code>n</code> children standing in a line. Each child is
+            assigned a rating value given in the integer array
+            <code>ratings</code>. You are giving candies to these children
+            subjected to the following requirements: each child must have at
+            least one candy, and children with a higher rating get more candies
+            than their neighbors. Return the minimum number of candies you need
+            to have to distribute the candies to the children.
+          </p>
+
+          <div class="aha-moment">
+            <strong>The "Aha!" Moment (Two-Pass Bidirectional Greedy):</strong
+            ><br />
+            A child has two independent neighbor constraints: the left neighbor
+            and the right neighbor. Instead of resolving both simultaneously,
+            decouple them into two passes:
+            <ol>
+              <li>
+                <strong>Left-to-Right Pass:</strong> Ensure every child with a
+                higher rating than their left neighbor receives more candies
+                (<code>leftToRight[i] = leftToRight[i - 1] + 1</code>).
+              </li>
+              <li>
+                <strong>Right-to-Left Pass:</strong> Ensure every child with a
+                higher rating than their right neighbor receives more candies
+                (<code>rightToLeft[i] = rightToLeft[i + 1] + 1</code>).
+              </li>
+            </ol>
+            Taking the maximum of both allocations for each child (<code
+              >Math.max(leftToRight[i], rightToLeft[i])</code
+            >) guarantees that both neighbor conditions are satisfied
+            simultaneously while minimizing total candies in
+            <strong>$O(N)$ time</strong> and <strong>$O(N)$ space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} ratings
+ * @return {number}
+ */
+var candy = function (ratings) {
+    const childCount = ratings.length;
+    const leftToRightCandies = Array(childCount).fill(1);
+    const rightToLeftCandies = Array(childCount).fill(1);
+
+    // Pass 1: Satisfy left-neighbor condition
+    for (let i = 1; i < childCount; i++) {
+        if (ratings[i] > ratings[i - 1]) {
+            leftToRightCandies[i] = leftToRightCandies[i - 1] + 1;
+        }
+    }
+
+    // Pass 2: Satisfy right-neighbor condition
+    for (let i = childCount - 2; i >= 0; i--) {
+        if (ratings[i] > ratings[i + 1]) {
+            rightToLeftCandies[i] = rightToLeftCandies[i + 1] + 1;
+        }
+    }
+
+    let totalCandies = 0;
+
+    // Combine both constraints by taking the maximum requirement for each child
+    for (let i = 0; i < childCount; i++) {
+        totalCandies += Math.max(leftToRightCandies[i], rightToLeftCandies[i]);
+    }
+
+    return totalCandies;
+};</code></pre>
+
+          <br />
+
+          <div class="aha-moment">
+            <strong
+              >The "Aha!" Moment (Peak &amp; Valley Counting / $O(1)$
+              Space):</strong
+            ><br />
+            Instead of allocating arrays, model the ratings sequence as a
+            mountain terrain of <strong>rising slopes (up)</strong>,
+            <strong>falling slopes (down)</strong>, and
+            <strong>flat plateaus</strong>:
+            <ol>
+              <li>
+                <strong>Base Allocation:</strong> Start by giving every child 1
+                candy (<code>totalCandies = ratings.length</code>).
+              </li>
+              <li>
+                <strong>Slopes:</strong> An uphill climb of length
+                <code>k</code> requires accumulating $1 + 2 + \dots + k$
+                additional candies. A downhill slope behaves symmetrically.
+              </li>
+              <li>
+                <strong>The Peak Collision:</strong> The mountain peak is shared
+                by both the ascending and descending slopes, meaning its height
+                was counted twice. We subtract
+                <code>Math.min(upSlopeLength, downSlopeLength)</code> to adjust
+                the peak candy count to whichever slope was taller.
+              </li>
+            </ol>
+            This resolves the problem in a single pass in
+            <strong>$O(N)$ time</strong> and
+            <strong>strictly $O(1)$ auxiliary space</strong>.
+          </div>
+
+          <!-- Highlighted Solution Block -->
+          <pre><code class="language-javascript">/**
+ * @param {number[]} ratings
+ * @return {number}
+ */
+var candy = function (ratings) {
+    const totalChildren = ratings.length;
+    let totalCandies = totalChildren; // Baseline: every child receives at least 1 candy
+    let currentIndex = 1;
+
+    while (currentIndex < totalChildren) {
+        // Flat plateau: equal adjacent ratings reset slope dependency
+        if (ratings[currentIndex] === ratings[currentIndex - 1]) {
+            currentIndex++;
+            continue;
+        }
+
+        let upSlopeLength = 0;
+        // Count consecutive ascending ratings
+        while (currentIndex < totalChildren && ratings[currentIndex] > ratings[currentIndex - 1]) {
+            upSlopeLength++;
+            totalCandies += upSlopeLength;
+            currentIndex++;
+        }
+
+        let downSlopeLength = 0;
+        // Count consecutive descending ratings
+        while (currentIndex < totalChildren && ratings[currentIndex] < ratings[currentIndex - 1]) {
+            downSlopeLength++;
+            totalCandies += downSlopeLength;
+            currentIndex++;
+        }
+
+        // Deduct the duplicate peak allocation, keeping the higher slope's requirement
+        totalCandies -= Math.min(upSlopeLength, downSlopeLength);
+    }
+
+    return totalCandies;
+};</code></pre>
+        </article>
       </main>
     </div>
+
+    <button
+      type="button"
+      class="back-to-top"
+      aria-label="Back to top"
+      onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
+    >
+      ↑
+    </button>
   </body>
 </html>
